@@ -54,7 +54,7 @@ export class UserResolver
         // Login successful then manage cookie
         res.cookie(
             "d_id", 
-            createRefreshToken,
+            createRefreshToken(user),
             {
                 httpOnly: true
             }
