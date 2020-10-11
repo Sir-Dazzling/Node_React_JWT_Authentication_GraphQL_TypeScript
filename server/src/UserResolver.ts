@@ -1,9 +1,10 @@
-import {Arg, Ctx, Field, Mutation, ObjectType, Query, Resolver, UseMiddleware} from 'type-graphql'; 
+import {Arg, Ctx, Field, Int, Mutation, ObjectType, Query, Resolver, UseMiddleware} from 'type-graphql'; 
 import { User } from './entity/User';
 import {compare, hash} from 'bcryptjs';
 import { MyContext } from './MyContext';
 import { createAccessToken, createRefreshToken } from './auth';
 import { isAuth } from './isAuth';
+import { getConnection } from 'typeorm';
 
 @ObjectType()
 class LoginResponse {
@@ -21,8 +22,8 @@ export class UserResolver
 
     @Query(() => String)
     @UseMiddleware(isAuth)
-    bye(@Ctx() {payload} : MyContext){
-        console.log('payload', payload);
+    bye(@Ctx() {payload} : MyContext)
+    {
         return `Your user id is ${payload?.userId}`;
     }
 
@@ -31,12 +32,23 @@ export class UserResolver
         return User.find();
     }
 
+    @Mutation(() => Boolean)
+    async revokeRefreshTokensForUser(
+        @Arg("userId", () => Int) userId: number
+    ) : Promise<Boolean> 
+    {
+        await getConnection().getRepository(User).increment({id: userId}, "tokenVersion", 1);
+
+        return true;
+    }
+
     @Mutation(() => LoginResponse)
     async login(
         @Arg("email") email: string,
         @Arg("password") password: string,
         @Ctx() {res} : MyContext
-    ) : Promise<LoginResponse> {
+    ) : Promise<LoginResponse> 
+    {
         const user = await User.findOne({where: {email}});
 
         if(!user)
@@ -69,7 +81,8 @@ export class UserResolver
     async register(
         @Arg("email") email: string,
         @Arg("password") password: string
-    ): Promise<Boolean> {
+    ) : Promise<Boolean> 
+    {
         const hashedPassword = await hash(password, 12);
         
         try 
