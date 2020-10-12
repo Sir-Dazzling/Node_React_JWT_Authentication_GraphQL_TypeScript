@@ -5,11 +5,12 @@ import App from './App';
 import { ApolloProvider } from '@apollo/react-hooks';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql'
+  uri: 'http://localhost:4000/graphql',
+  credentials: "include"
 });
 
 ReactDOM.render(
-  <ApolloProvider client = {client as any}>
+  <ApolloProvider client={client as any}>
     <App />
   </ApolloProvider>,
   document.getElementById('root')
